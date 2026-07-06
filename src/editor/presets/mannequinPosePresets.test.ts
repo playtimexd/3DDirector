@@ -1,6 +1,6 @@
 import { MANNEQUIN_POSE_PRESETS } from "./mannequinPosePresets";
 
-it("exports the approved 20 pose presets", () => {
+it("exports the approved 30 pose presets", () => {
   expect(MANNEQUIN_POSE_PRESETS.map((item) => item.label)).toEqual([
     "Stand",
     "T-Pose",
@@ -22,6 +22,16 @@ it("exports the approved 20 pose presets", () => {
     "Reach",
     "Cross arms",
     "Check phone",
+    "Salute",
+    "Point",
+    "Cross-legged",
+    "Jump",
+    "Aim",
+    "Dance",
+    "Shrug",
+    "Facepalm",
+    "Cheer",
+    "Sneak",
   ]);
 });
 

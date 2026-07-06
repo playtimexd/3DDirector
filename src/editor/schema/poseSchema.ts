@@ -19,6 +19,16 @@ export const POSE_PRESET_IDS = [
   "reach",
   "cross-arms",
   "phone",
+  "salute",
+  "point",
+  "cross-legged",
+  "jump",
+  "aim",
+  "dance",
+  "shrug",
+  "facepalm",
+  "cheer",
+  "sneak",
 ] as const;
 
 export type PosePresetId = (typeof POSE_PRESET_IDS)[number];
