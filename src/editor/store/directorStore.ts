@@ -15,6 +15,8 @@ import type {
   PanoramaProjectionMode,
   SceneSettings,
   ViewMode,
+  WeaponAttachment,
+  WeaponType,
 } from "../schema/directorProject";
 import type { PosePresetId } from "../schema/poseSchema";
 import { getDirectorObjectFocusTarget } from "../schema/cameraTarget";
@@ -107,6 +109,10 @@ export interface DirectorActions {
   updateObjectColor: (id: string, color: string) => void;
   updateCrowdColor: (crowdId: string, color: string) => void;
   updateCharacterBodyType: (id: string, bodyType: CharacterBodyType) => void;
+  setCharacterWeapon: (id: string, weaponType: WeaponType | null) => void;
+  updateCharacterWeapon: (id: string, patch: Partial<WeaponAttachment>) => void;
+  setCrowdWeapon: (crowdId: string, weaponType: WeaponType | null) => void;
+  updateCrowdWeapon: (crowdId: string, patch: Partial<WeaponAttachment>) => void;
   updateUniformScale: (id: string, scale: number) => void;
   updateCrowdUniformScale: (crowdId: string, scale: number) => void;
   addImportedAsset: (input: ImportedAssetInput) => void;
@@ -171,6 +177,37 @@ const CHARACTER_COLOR_PALETTE = [
   "#FF7A45",
 ];
 const GEOMETRY_PRIMITIVE_COLOR = "#d7e7ff";
+const DEFAULT_WEAPON_COLOR = "#c9ced6";
+
+function createWeaponAttachment(
+  type: WeaponType,
+  existing?: WeaponAttachment
+): WeaponAttachment {
+  if (existing) return { ...existing, type };
+
+  return {
+    type,
+    hand: "right",
+    offset: [0, 0, 0],
+    rotation: [0, 0, -90],
+    scale: 1,
+    color: DEFAULT_WEAPON_COLOR,
+  };
+}
+
+function withCharacterWeaponType(item: DirectorObject, weaponType: WeaponType | null): DirectorObject {
+  if (item.kind !== "character") return item;
+  if (!weaponType) {
+    const { weapon: _removed, ...rest } = item;
+    return rest;
+  }
+  return { ...item, weapon: createWeaponAttachment(weaponType, item.weapon) };
+}
+
+function withCharacterWeaponPatch(item: DirectorObject, patch: Partial<WeaponAttachment>): DirectorObject {
+  if (item.kind !== "character" || !item.weapon) return item;
+  return { ...item, weapon: { ...item.weapon, ...patch } };
+}
 const ADDED_MODEL_WORLD_SPACING = 1.25;
 const COPY_PASTE_POSITION_OFFSET = 0.6;
 const UNDO_STACK_LIMIT = 80;
@@ -1443,6 +1480,48 @@ export const useDirectorStore = create<DirectorStore>((set, get) => {
           },
         };
       }),
+    setCharacterWeapon: (id, weaponType) =>
+      commitMutation((state) => ({
+        ...state,
+        project: {
+          ...state.project,
+          objects: updateObjectById(state.project.objects, id, (item) =>
+            withCharacterWeaponType(item, weaponType)
+          ),
+        },
+      })),
+    updateCharacterWeapon: (id, patch) =>
+      commitMutation((state) => ({
+        ...state,
+        project: {
+          ...state.project,
+          objects: updateObjectById(state.project.objects, id, (item) => withCharacterWeaponPatch(item, patch)),
+        },
+      })),
+    setCrowdWeapon: (crowdId, weaponType) =>
+      commitMutation((state) => ({
+        ...state,
+        project: {
+          ...state.project,
+          objects: state.project.objects.map((item) =>
+            item.kind === "character" && item.crowdId === crowdId
+              ? withCharacterWeaponType(item, weaponType)
+              : item
+          ),
+        },
+      })),
+    updateCrowdWeapon: (crowdId, patch) =>
+      commitMutation((state) => ({
+        ...state,
+        project: {
+          ...state.project,
+          objects: state.project.objects.map((item) =>
+            item.kind === "character" && item.crowdId === crowdId
+              ? withCharacterWeaponPatch(item, patch)
+              : item
+          ),
+        },
+      })),
     updateUniformScale: (id, scale) =>
       commitMutation((state) => {
         const currentObject = state.project.objects.find((item) => item.id === id);

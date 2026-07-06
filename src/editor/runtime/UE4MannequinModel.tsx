@@ -13,13 +13,15 @@ import {
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
-import type { CharacterRigState } from "../schema/directorProject";
+import type { CharacterRigState, WeaponAttachment } from "../schema/directorProject";
 import { VIEWPORT_OBJECT_LABEL_VERTICAL_GAP } from "../schema/viewportLabels";
 import type { CharacterBodyType } from "./mannequin/bodyTypes";
 import {
+  UE4_MANNEQUIN_BONE_MAP,
   UE4_MANNEQUIN_MODEL_URL,
   getUE4ModelScale,
 } from "./ue4Mannequin/ue4MannequinRig";
+import { WeaponFollower } from "./weapons/WeaponFollower";
 import { applyUE4RestPoseAndRig, captureUE4RestPose } from "./ue4Mannequin/ue4MannequinPoseApplication";
 
 interface UE4MannequinModelProps {
@@ -27,6 +29,7 @@ interface UE4MannequinModelProps {
   color?: string;
   onLabelAnchorYChange?: (anchorY: number) => void;
   rigState?: CharacterRigState;
+  weapon?: WeaponAttachment;
 }
 
 interface LoadedGLTF {
@@ -129,11 +132,17 @@ export function UE4MannequinModel({
   color = "#F3F5F7",
   onLabelAnchorYChange,
   rigState,
+  weapon,
 }: UE4MannequinModelProps) {
   const gltf = useLoader(GLTFLoader, UE4_MANNEQUIN_MODEL_URL) as LoadedGLTF;
   const scene = useMemo(() => cloneSkeleton(gltf.scene) as Group, [gltf.scene]);
   const restPose = useMemo(() => captureUE4RestPose(scene), [scene]);
   const modelScale = getUE4ModelScale(bodyType);
+  const weaponBone = useMemo(() => {
+    if (!weapon) return null;
+    const boneName = UE4_MANNEQUIN_BONE_MAP[weapon.hand === "left" ? "leftHand" : "rightHand"];
+    return scene.getObjectByName(boneName) ?? null;
+  }, [scene, weapon?.hand]);
 
   useLayoutEffect(() => {
     isolateAndTintUE4MannequinMaterials(scene, color);
@@ -157,6 +166,7 @@ export function UE4MannequinModel({
   return (
     <group name={`ue-retopology-mannequin-${bodyType}`} scale={modelScale}>
       <primitive object={scene} />
+      {weapon && weaponBone ? <WeaponFollower bone={weaponBone} weapon={weapon} /> : null}
     </group>
   );
 }

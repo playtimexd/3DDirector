@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from "react";
-import type { CharacterRigState } from "../schema/directorProject";
+import type { CharacterRigState, WeaponAttachment } from "../schema/directorProject";
 import { PrimitiveMannequin } from "./PrimitiveMannequin";
 import { UE4MannequinModel } from "./UE4MannequinModel";
 import type { CharacterBodyType } from "./mannequin/bodyTypes";
@@ -9,6 +9,7 @@ interface CharacterModelProps {
   color?: string;
   onLabelAnchorYChange?: (anchorY: number) => void;
   rigState?: CharacterRigState;
+  weapon?: WeaponAttachment;
 }
 
 class CharacterModelBoundary extends Component<
@@ -31,7 +32,7 @@ class CharacterModelBoundary extends Component<
   }
 }
 
-export function CharacterModel({ bodyType, color, onLabelAnchorYChange, rigState }: CharacterModelProps) {
+export function CharacterModel({ bodyType, color, onLabelAnchorYChange, rigState, weapon }: CharacterModelProps) {
   const fallback = <PrimitiveMannequin bodyType={bodyType} color={color} rigState={rigState} />;
 
   if (rigState?.rigType !== "ue4-mannequin") {
@@ -45,6 +46,7 @@ export function CharacterModel({ bodyType, color, onLabelAnchorYChange, rigState
         color={color}
         onLabelAnchorYChange={onLabelAnchorYChange}
         rigState={rigState}
+        weapon={weapon}
       />
     </CharacterModelBoundary>
   );

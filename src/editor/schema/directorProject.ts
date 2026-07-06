@@ -10,6 +10,27 @@ export const GEOMETRY_PRIMITIVE_OPTIONS = [
   { type: "pyramid", label: "Pyramid" },
 ] as const;
 export type GeometryPrimitiveType = (typeof GEOMETRY_PRIMITIVE_OPTIONS)[number]["type"];
+export const WEAPON_OPTIONS = [
+  { type: "sword", label: "Sword" },
+  { type: "dagger", label: "Dagger" },
+  { type: "axe", label: "Axe" },
+  { type: "spear", label: "Spear" },
+  { type: "staff", label: "Staff" },
+  { type: "bow", label: "Bow" },
+  { type: "rifle", label: "Rifle" },
+  { type: "pistol", label: "Pistol" },
+  { type: "shield", label: "Shield" },
+] as const;
+export type WeaponType = (typeof WEAPON_OPTIONS)[number]["type"];
+export type WeaponHand = "left" | "right";
+export interface WeaponAttachment {
+  type: WeaponType;
+  hand: WeaponHand;
+  offset: [number, number, number];
+  rotation: [number, number, number];
+  scale: number;
+  color: string;
+}
 export type CharacterRigType = "mannequin" | "ue4-mannequin" | "mixamo" | "vrm" | "custom-humanoid";
 export type CharacterBodyType =
   | "mannequin"
@@ -76,6 +97,7 @@ export interface DirectorObject {
   crowdLabel?: string;
   linkedCameraId?: string | null;
   characterRig?: CharacterRigState;
+  weapon?: WeaponAttachment;
 }
 
 export interface DirectorCameraCapture {

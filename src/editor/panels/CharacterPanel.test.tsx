@@ -33,7 +33,7 @@ it("keeps character creation-only body type controls out of the role property pa
     item.textContent?.trim()
   );
 
-  expect(labels).toEqual(["Name", "Position", "Rotation", "Scale", "Uniform scale", "Color"]);
+  expect(labels).toEqual(["Name", "Position", "Rotation", "Scale", "Uniform scale", "Color", "Weapon", "Type"]);
   expect(screen.queryByText("Body type")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Chibi" })).not.toBeInTheDocument();
 });

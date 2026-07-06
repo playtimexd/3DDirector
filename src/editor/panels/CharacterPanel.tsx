@@ -4,10 +4,12 @@ import {
   InspectorColorField,
   InspectorPanel,
   InspectorRangeNumberField,
+  InspectorSelectField,
   InspectorTextField,
   InspectorSection,
 } from "./InspectorControls";
 import { MANNEQUIN_POSE_PRESETS } from "../presets/mannequinPosePresets";
+import { WEAPON_OPTIONS, type WeaponAttachment, type WeaponHand, type WeaponType } from "../schema/directorProject";
 import { getCrowdAnchorTransform, useDirectorStore } from "../store/directorStore";
 
 function replaceAxis(tuple: [number, number, number], axis: 0 | 1 | 2, value: number): [number, number, number] {
@@ -27,6 +29,10 @@ export function CharacterPanel() {
   const updateCrowdUniformScale = useDirectorStore((state) => state.updateCrowdUniformScale);
   const updateObjectColor = useDirectorStore((state) => state.updateObjectColor);
   const updateCrowdColor = useDirectorStore((state) => state.updateCrowdColor);
+  const setCharacterWeapon = useDirectorStore((state) => state.setCharacterWeapon);
+  const updateCharacterWeapon = useDirectorStore((state) => state.updateCharacterWeapon);
+  const setCrowdWeapon = useDirectorStore((state) => state.setCrowdWeapon);
+  const updateCrowdWeapon = useDirectorStore((state) => state.updateCrowdWeapon);
   const applyPosePreset = useDirectorStore((state) => state.applyPosePreset);
   const applyCrowdPosePreset = useDirectorStore((state) => state.applyCrowdPosePreset);
   const updatePoseControl = useDirectorStore((state) => state.updatePoseControl);
@@ -71,6 +77,18 @@ export function CharacterPanel() {
   const roleColor = selection.color;
   const transform = selection.crowdAnchor;
   const isCrowd = selection.mode === "crowd";
+  const weapon = role.weapon;
+
+  const applyWeaponType = (value: string) => {
+    const nextType = value === "none" ? null : (value as WeaponType);
+    if (isCrowd && selection.crowdId) setCrowdWeapon(selection.crowdId, nextType);
+    else setCharacterWeapon(role.id, nextType);
+  };
+
+  const patchWeapon = (patch: Partial<WeaponAttachment>) => {
+    if (isCrowd && selection.crowdId) updateCrowdWeapon(selection.crowdId, patch);
+    else updateCharacterWeapon(role.id, patch);
+  };
   const poseGroups = [
     {
       title: "Body",
@@ -332,6 +350,104 @@ export function CharacterPanel() {
               isCrowd && selection.crowdId ? updateCrowdColor(selection.crowdId, value) : updateObjectColor(role.id, value)
             }
           />
+          <InspectorSection title="Weapon" className="weapon-section">
+            <InspectorSelectField
+              label="Type"
+              ariaLabel="Weapon type"
+              value={weapon?.type ?? "none"}
+              onChange={applyWeaponType}
+            >
+              <option value="none">None</option>
+              {WEAPON_OPTIONS.map((option) => (
+                <option key={option.type} value={option.type}>
+                  {option.label}
+                </option>
+              ))}
+            </InspectorSelectField>
+            {weapon ? (
+              <>
+                <InspectorSelectField
+                  label="Hand"
+                  ariaLabel="Weapon hand"
+                  value={weapon.hand}
+                  onChange={(value) => patchWeapon({ hand: value as WeaponHand })}
+                >
+                  <option value="right">Right hand</option>
+                  <option value="left">Left hand</option>
+                </InspectorSelectField>
+                <InspectorAxisGroup
+                  label="Grip offset"
+                  axes={[
+                    {
+                      axis: "X",
+                      ariaLabel: "Weapon offset X",
+                      step: "0.01",
+                      value: weapon.offset[0],
+                      onChange: (value) => patchWeapon({ offset: replaceAxis(weapon.offset, 0, Number(value)) }),
+                    },
+                    {
+                      axis: "Y",
+                      ariaLabel: "Weapon offset Y",
+                      step: "0.01",
+                      value: weapon.offset[1],
+                      onChange: (value) => patchWeapon({ offset: replaceAxis(weapon.offset, 1, Number(value)) }),
+                    },
+                    {
+                      axis: "Z",
+                      ariaLabel: "Weapon offset Z",
+                      step: "0.01",
+                      value: weapon.offset[2],
+                      onChange: (value) => patchWeapon({ offset: replaceAxis(weapon.offset, 2, Number(value)) }),
+                    },
+                  ]}
+                />
+                <InspectorAxisGroup
+                  label="Grip rotation"
+                  axes={[
+                    {
+                      axis: "X",
+                      ariaLabel: "Weapon rotation X",
+                      step: "1",
+                      value: weapon.rotation[0],
+                      onChange: (value) => patchWeapon({ rotation: replaceAxis(weapon.rotation, 0, Number(value)) }),
+                    },
+                    {
+                      axis: "Y",
+                      ariaLabel: "Weapon rotation Y",
+                      step: "1",
+                      value: weapon.rotation[1],
+                      onChange: (value) => patchWeapon({ rotation: replaceAxis(weapon.rotation, 1, Number(value)) }),
+                    },
+                    {
+                      axis: "Z",
+                      ariaLabel: "Weapon rotation Z",
+                      step: "1",
+                      value: weapon.rotation[2],
+                      onChange: (value) => patchWeapon({ rotation: replaceAxis(weapon.rotation, 2, Number(value)) }),
+                    },
+                  ]}
+                />
+                <InspectorRangeNumberField
+                  label="Weapon scale"
+                  rangeAriaLabel="Weapon scale slider"
+                  numberAriaLabel="Weapon scale"
+                  max="3"
+                  min="0.2"
+                  step="0.01"
+                  value={weapon.scale}
+                  onValueChange={(value) => patchWeapon({ scale: Number(value) })}
+                />
+                <InspectorColorField
+                  label="Weapon color"
+                  colorAriaLabel="Weapon color"
+                  hexAriaLabel="Weapon color HEX"
+                  value={weapon.color}
+                  onColorChange={(value) => patchWeapon({ color: value })}
+                  onHexChange={(value) => patchWeapon({ color: value })}
+                />
+              </>
+            ) : null}
+          </InspectorSection>
         </>
       ) : (
         <InspectorSection title="Pose presets" className="pose-preset-section">

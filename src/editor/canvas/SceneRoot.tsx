@@ -538,6 +538,7 @@ function ObjectSceneNode({
               color={item.color}
               onLabelAnchorYChange={handleCharacterLabelAnchorYChange}
               rigState={item.characterRig}
+              weapon={item.weapon}
             />
           </Suspense>
           {showLabels ? (
