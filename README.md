@@ -7,6 +7,7 @@ A 3D storyboarding director desk built with React, Vite, Three.js, and React Thr
 - Switch between director view and camera view
 - 8 built-in character body types and 30 different poses
 - Equip weapons (sword, dagger, axe, spear, staff, bow, rifle, pistol, shield) to a character's hand; they follow the pose and are adjustable (hand, grip offset/rotation, scale, color)
+- Articulated fingers: the holding hand automatically closes around an equipped weapon, with per-hand grip sliders (Pose tab) for manual control
 - Quickly add characters, crowds, geometric primitives, and cameras
 - Import local FBX / OBJ / glTF (.glb/.gltf) models with a customizable model library
 - Crowd arrays — add as many people as you want

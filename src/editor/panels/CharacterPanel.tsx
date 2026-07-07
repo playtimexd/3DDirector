@@ -495,6 +495,30 @@ export function CharacterPanel() {
                   ))}
                 </div>
               </InspectorSection>
+              <InspectorSection title="Hands" className="pose-hands-section">
+                {(
+                  [
+                    { key: "leftHand.grip", label: "Left grip" },
+                    { key: "rightHand.grip", label: "Right grip" },
+                  ] as const
+                ).map((control) => (
+                  <InspectorRangeNumberField
+                    key={control.key}
+                    label={control.label}
+                    rangeAriaLabel={`${control.label} slider`}
+                    numberAriaLabel={control.label}
+                    max="100"
+                    min="0"
+                    step="1"
+                    value={role.characterRig?.controls[control.key] ?? 0}
+                    onValueChange={(value) =>
+                      isCrowd && selection.crowdId
+                        ? updateCrowdPoseControl(selection.crowdId, control.key, Number(value))
+                        : updatePoseControl(role.id, control.key, Number(value))
+                    }
+                  />
+                ))}
+              </InspectorSection>
             </>
           ) : (
             <p>This model has no recognized standard humanoid skeleton, so pose editing is unavailable.</p>

@@ -214,18 +214,48 @@ function createWeaponAttachment(
   };
 }
 
+// Grip amount (0-100) the holding hand curls to when a weapon is equipped.
+const DEFAULT_WEAPON_GRIP = 80;
+
+function withHandGrip(item: DirectorObject, hand: WeaponAttachment["hand"], grip: number): DirectorObject {
+  if (item.kind !== "character" || !item.characterRig) return item;
+  return {
+    ...item,
+    characterRig: {
+      ...item.characterRig,
+      controls: {
+        ...item.characterRig.controls,
+        [`${hand}Hand.grip`]: grip,
+      },
+    },
+  };
+}
+
 function withCharacterWeaponType(item: DirectorObject, weaponType: WeaponType | null): DirectorObject {
   if (item.kind !== "character") return item;
   if (!weaponType) {
-    const { weapon: _removed, ...rest } = item;
-    return rest;
+    const { weapon: removed, ...rest } = item;
+    // Relax the hand that was holding the weapon.
+    return removed ? withHandGrip(rest, removed.hand, 0) : rest;
   }
-  return { ...item, weapon: createWeaponAttachment(weaponType, item.weapon) };
+  const weapon = createWeaponAttachment(weaponType, item.weapon);
+  return withHandGrip({ ...item, weapon }, weapon.hand, DEFAULT_WEAPON_GRIP);
 }
 
 function withCharacterWeaponPatch(item: DirectorObject, patch: Partial<WeaponAttachment>): DirectorObject {
   if (item.kind !== "character" || !item.weapon) return item;
-  return { ...item, weapon: { ...item.weapon, ...patch } };
+
+  const previousHand = item.weapon.hand;
+  const nextWeapon = { ...item.weapon, ...patch };
+  let next: DirectorObject = { ...item, weapon: nextWeapon };
+
+  // Moving the weapon to the other hand relaxes the old hand and grips the new.
+  if (patch.hand && patch.hand !== previousHand) {
+    next = withHandGrip(next, previousHand, 0);
+    next = withHandGrip(next, patch.hand, DEFAULT_WEAPON_GRIP);
+  }
+
+  return next;
 }
 const ADDED_MODEL_WORLD_SPACING = 1.25;
 const COPY_PASTE_POSITION_OFFSET = 0.6;

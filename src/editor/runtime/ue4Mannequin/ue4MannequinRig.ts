@@ -313,11 +313,53 @@ export function getUE4PoseBonePositionOffsets(controls: Record<string, number>):
   };
 }
 
+// Finger joints per hand, ordered thumb, index, middle, ring, pinky, each
+// listed base -> middle -> distal. Curling about local +Z closes the hand
+// toward the palm (verified for both hands).
+const UE4_HAND_FINGER_JOINTS: Record<"left" | "right", string[][]> = {
+  right: [
+    ["Bip001_R_Finger0_035", "Bones_R_Finger01_036", "Bones_R_Finger02_037"],
+    ["Bones_R_Finger1_039", "Bones_R_Finger11_040", "Bones_R_Finger12_041"],
+    ["Bones_R_Finger2_043", "Bones_R_Finger21_044", "Bones_R_Finger22_045"],
+    ["Bones_R_Finger3_047", "Bones_R_Finger31_048", "Bones_R_Finger32_049"],
+    ["Bones_R_Finger4_051", "Bones_R_Finger41_052", "Bones_R_Finger42_053"],
+  ],
+  left: [
+    ["Bip001_L_Finger0_011", "Bones_L_Finger01_012", "Bones_L_Finger02_013"],
+    ["Bones_L_Finger1_015", "Bones_L_Finger11_016", "Bones_L_Finger12_017"],
+    ["Bones_L_Finger2_019", "Bones_L_Finger21_020", "Bones_L_Finger22_021"],
+    ["Bones_L_Finger3_023", "Bones_L_Finger31_024", "Bones_L_Finger32_025"],
+    ["Bones_L_Finger4_027", "Bones_L_Finger41_028", "Bones_L_Finger42_029"],
+  ],
+};
+// Curl (radians) at full grip for base / middle / distal joints.
+const FINGER_JOINT_CURL = [0.95, 1.4, 1.0];
+const THUMB_JOINT_CURL = [0.45, 0.55, 0.5];
+
+export function getUE4FingerCurlRotations(controls: Record<string, number>): UE4BoneRotationMap {
+  const rotations: UE4BoneRotationMap = {};
+
+  (["left", "right"] as const).forEach((hand) => {
+    const grip = Math.max(0, Math.min(100, controls[`${hand}Hand.grip`] ?? 0)) / 100;
+    if (grip <= 0) return;
+
+    UE4_HAND_FINGER_JOINTS[hand].forEach((jointNames, fingerIndex) => {
+      const curl = fingerIndex === 0 ? THUMB_JOINT_CURL : FINGER_JOINT_CURL;
+      jointNames.forEach((boneName, jointIndex) => {
+        rotations[boneName] = [0, 0, curl[jointIndex] * grip];
+      });
+    });
+  });
+
+  return rotations;
+}
+
 export function getUE4PoseBoneRotations(
   controls: Record<string, number>,
   bodyType?: CharacterBodyType
 ): UE4BoneRotationMap {
   return {
+    ...getUE4FingerCurlRotations(controls),
     Bip001_Pelvis_03: ue4SpineRotation(controls, "body", bodyType),
     Bip001_Spine1_05: ue4SpineRotation(controls, "torso", bodyType),
     Bip001_Head_055: ue4HeadRotation(controls, bodyType),
