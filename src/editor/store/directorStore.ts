@@ -180,18 +180,19 @@ const GEOMETRY_PRIMITIVE_COLOR = "#d7e7ff";
 const DEFAULT_WEAPON_COLOR = "#c9ced6";
 
 // Weapons are modeled with their length along +Y and the grip at the origin.
-// These rotations orient each type naturally for a hand hanging at rest:
-// blades hang down at the side, poles are held upright, guns point forward.
+// By default every weapon points forward, out in front of the character
+// ([90,0,0] maps the weapon's length to the facing direction).
+const WEAPON_FORWARD_ROTATION: [number, number, number] = [90, 0, 0];
 const WEAPON_DEFAULT_ROTATION: Record<WeaponType, [number, number, number]> = {
-  sword: [0, 0, -90],
-  dagger: [0, 0, -90],
-  axe: [0, 0, -90],
-  spear: [0, 0, 90],
-  staff: [0, 0, 90],
-  bow: [0, 0, 90],
-  rifle: [90, 0, 0],
-  pistol: [90, 0, 0],
-  shield: [90, 0, 0],
+  sword: WEAPON_FORWARD_ROTATION,
+  dagger: WEAPON_FORWARD_ROTATION,
+  axe: WEAPON_FORWARD_ROTATION,
+  spear: WEAPON_FORWARD_ROTATION,
+  staff: WEAPON_FORWARD_ROTATION,
+  bow: WEAPON_FORWARD_ROTATION,
+  rifle: WEAPON_FORWARD_ROTATION,
+  pistol: WEAPON_FORWARD_ROTATION,
+  shield: WEAPON_FORWARD_ROTATION,
 };
 
 function createWeaponAttachment(
