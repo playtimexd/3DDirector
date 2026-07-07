@@ -179,17 +179,36 @@ const CHARACTER_COLOR_PALETTE = [
 const GEOMETRY_PRIMITIVE_COLOR = "#d7e7ff";
 const DEFAULT_WEAPON_COLOR = "#c9ced6";
 
+// Weapons are modeled with their length along +Y and the grip at the origin.
+// These rotations orient each type naturally for a hand hanging at rest:
+// blades hang down at the side, poles are held upright, guns point forward.
+const WEAPON_DEFAULT_ROTATION: Record<WeaponType, [number, number, number]> = {
+  sword: [0, 0, -90],
+  dagger: [0, 0, -90],
+  axe: [0, 0, -90],
+  spear: [0, 0, 90],
+  staff: [0, 0, 90],
+  bow: [0, 0, 90],
+  rifle: [90, 0, 0],
+  pistol: [90, 0, 0],
+  shield: [90, 0, 0],
+};
+
 function createWeaponAttachment(
   type: WeaponType,
   existing?: WeaponAttachment
 ): WeaponAttachment {
-  if (existing) return { ...existing, type };
+  const rotation: [number, number, number] = [...WEAPON_DEFAULT_ROTATION[type]];
+
+  // Switching weapon type re-applies that type's natural orientation while
+  // keeping the hand, scale, and color the user already chose.
+  if (existing) return { ...existing, type, rotation };
 
   return {
     type,
     hand: "right",
     offset: [0, 0, 0],
-    rotation: [0, 0, -90],
+    rotation,
     scale: 1,
     color: DEFAULT_WEAPON_COLOR,
   };
